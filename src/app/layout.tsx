@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://quicktools.app'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://quicktools-fawn.vercel.app'),
   title: {
     default: 'QuickTools - Free Private Online PDF, Image & Video Tools',
     template: '%s | QuickTools',
