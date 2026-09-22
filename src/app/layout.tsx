@@ -62,6 +62,9 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
+  verification: {
+    google: '80OuNJFLs9jPTIyWwPWmkau1BpEeDC-_P3g0o3ZQ1GU',
+  },
 };
 
 export default function RootLayout({
@@ -77,6 +80,7 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <head>
+        <meta name="google-site-verification" content="80OuNJFLs9jPTIyWwPWmkau1BpEeDC-_P3g0o3ZQ1GU" />
         <meta name="google-adsense-account" content={adsenseId} />
         <script
           async
