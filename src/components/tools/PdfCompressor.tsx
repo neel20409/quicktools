@@ -2,11 +2,87 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { UploadCloud, FileText, CheckCircle2, ArrowDown, Sparkles, Download, RefreshCw, AlertCircle } from 'lucide-react';
-import { PDFDocument } from 'pdf-lib';
+import { PDFDocument, PDFName, PDFNumber, PDFRawStream } from 'pdf-lib';
 import confetti from 'canvas-confetti';
 import { AdBanner } from '@/components/AdBanner';
 import { DownloadAdModal } from '@/components/DownloadAdModal';
 import { downloadBlob } from '@/lib/download';
+
+async function compressJpegBuffer(
+  jpegBytes: Uint8Array,
+  maxDimension: number,
+  quality: number
+): Promise<{ bytes: Uint8Array; width: number; height: number } | null> {
+  if (typeof window === 'undefined') return null;
+
+  return new Promise((resolve) => {
+    try {
+      const blob = new Blob([jpegBytes as Uint8Array<ArrayBuffer>], { type: 'image/jpeg' });
+      const url = URL.createObjectURL(blob);
+      const img = new Image();
+
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        try {
+          let { naturalWidth: width, naturalHeight: height } = img;
+          if (!width || !height) {
+            resolve(null);
+            return;
+          }
+
+          if (width > maxDimension || height > maxDimension) {
+            const ratio = Math.min(maxDimension / width, maxDimension / height);
+            width = Math.max(1, Math.round(width * ratio));
+            height = Math.max(1, Math.round(height * ratio));
+          }
+
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            resolve(null);
+            return;
+          }
+
+          ctx.drawImage(img, 0, 0, width, height);
+          canvas.toBlob(
+            async (compressedBlob) => {
+              if (!compressedBlob) {
+                resolve(null);
+                return;
+              }
+              try {
+                const buffer = await compressedBlob.arrayBuffer();
+                const newBytes = new Uint8Array(buffer);
+                if (newBytes.length < jpegBytes.length) {
+                  resolve({ bytes: newBytes, width, height });
+                } else {
+                  resolve(null);
+                }
+              } catch {
+                resolve(null);
+              }
+            },
+            'image/jpeg',
+            quality
+          );
+        } catch {
+          resolve(null);
+        }
+      };
+
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        resolve(null);
+      };
+
+      img.src = url;
+    } catch {
+      resolve(null);
+    }
+  });
+}
 
 export function PdfCompressor() {
   const [file, setFile] = useState<File | null>(null);
@@ -58,15 +134,15 @@ export function PdfCompressor() {
     if (!file) return;
     setIsProcessing(true);
     setError(null);
-    setProgress(20);
+    setProgress(15);
 
     try {
       const arrayBuffer = await file.arrayBuffer();
-      setProgress(45);
+      setProgress(30);
 
       // Load PDF via pdf-lib
       const pdfDoc = await PDFDocument.load(arrayBuffer, { ignoreEncryption: true });
-      setProgress(70);
+      setProgress(45);
 
       // Strip unnecessary metadata to reduce overhead
       pdfDoc.setTitle('');
@@ -76,35 +152,69 @@ export function PdfCompressor() {
       pdfDoc.setProducer('QuickTools Client Optimizer');
       pdfDoc.setCreator('QuickTools');
 
+      // Compression targets for embedded raster images
+      const maxDim =
+        compressionLevel === 'ultra' ? 1200 :
+        compressionLevel === 'extreme' ? 1500 :
+        compressionLevel === 'recommended' ? 1920 : 2560;
+
+      const quality =
+        compressionLevel === 'ultra' ? 0.42 :
+        compressionLevel === 'extreme' ? 0.55 :
+        compressionLevel === 'recommended' ? 0.70 : 0.82;
+
+      // Extract and compress embedded raster images
+      const indirectObjects = pdfDoc.context.enumerateIndirectObjects();
+      const imageObjects: PDFRawStream[] = [];
+
+      for (const [ref, obj] of indirectObjects) {
+        if (obj instanceof PDFRawStream && obj.dict) {
+          const subtype = obj.dict.get(PDFName.of('Subtype'));
+          if (subtype === PDFName.of('Image')) {
+            const filter = obj.dict.get(PDFName.of('Filter'));
+            const isJpeg =
+              filter === PDFName.of('DCTDecode') ||
+              (obj.contents && obj.contents.length > 2 && obj.contents[0] === 0xff && obj.contents[1] === 0xd8);
+
+            if (isJpeg && obj.contents && obj.contents.length > 8192) {
+              imageObjects.push(obj);
+            }
+          }
+        }
+      }
+
+      if (imageObjects.length > 0) {
+        for (let i = 0; i < imageObjects.length; i++) {
+          const obj = imageObjects[i];
+          const res = await compressJpegBuffer(obj.contents, maxDim, quality);
+          if (res) {
+            (obj as any).contents = res.bytes;
+            obj.dict.set(PDFName.of('Length'), PDFNumber.of(res.bytes.length));
+            obj.dict.set(PDFName.of('Width'), PDFNumber.of(res.width));
+            obj.dict.set(PDFName.of('Height'), PDFNumber.of(res.height));
+            obj.dict.set(PDFName.of('Filter'), PDFName.of('DCTDecode'));
+          }
+          setProgress(45 + Math.round(((i + 1) / imageObjects.length) * 40));
+        }
+      } else {
+        setProgress(80);
+      }
+
+      setProgress(88);
+
       // Save with object stream compression
       const pdfBytes = await pdfDoc.save({
         useObjectStreams: true,
         addDefaultPage: false,
       });
 
-      setProgress(90);
+      setProgress(95);
 
-      // Simulate client optimization pass
       const resultBlob = new Blob([pdfBytes as Uint8Array<ArrayBuffer>], { type: 'application/pdf' });
-      
-      // Calculate realistic optimized size with strong compression targets
-      let simulatedBytes = pdfBytes.length;
-      if (compressionLevel === 'ultra') {
-        // Ultra/Maximum: 80% to 88% reduction (ideal for portal limits < 200KB / < 500KB)
-        simulatedBytes = Math.min(simulatedBytes, Math.floor(originalSize * 0.18));
-      } else if (compressionLevel === 'extreme') {
-        // Extreme: 70% to 78% reduction
-        simulatedBytes = Math.min(simulatedBytes, Math.floor(originalSize * 0.28));
-      } else if (compressionLevel === 'recommended') {
-        // Balanced: 50% to 60% reduction
-        simulatedBytes = Math.min(simulatedBytes, Math.floor(originalSize * 0.45));
-      } else if (compressionLevel === 'light') {
-        // Light / High detail: 25% to 35% reduction
-        simulatedBytes = Math.min(simulatedBytes, Math.floor(originalSize * 0.68));
-      }
-
       setCompressedBlob(resultBlob);
-      setCompressedSize(simulatedBytes);
+
+      // ALWAYS set the true, real size of the actual downloaded file!
+      setCompressedSize(resultBlob.size);
       setProgress(100);
 
       confetti({
@@ -136,7 +246,7 @@ export function PdfCompressor() {
   };
 
   const savingsPercent = originalSize > 0 && compressedSize > 0
-    ? Math.max(5, Math.round(((originalSize - compressedSize) / originalSize) * 100))
+    ? Math.max(0, Math.round(((originalSize - compressedSize) / originalSize) * 100))
     : 0;
 
   return (
