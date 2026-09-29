@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { UploadCloud, Eraser, CheckCircle2, Download, RefreshCw, AlertCircle, Sparkles } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { AdBanner } from '@/components/AdBanner';
@@ -14,6 +14,18 @@ export function BackgroundRemover() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const resultRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to result card immediately when processing completes
+  useEffect(() => {
+    if (processedUrl && resultRef.current) {
+      resultRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      const timer = setTimeout(() => {
+        resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [processedUrl]);
 
   const handleFile = (selected: File) => {
     if (!selected.type.startsWith('image/')) {
@@ -189,6 +201,52 @@ export function BackgroundRemover() {
             </button>
           </div>
 
+          {/* Result Card: Displayed directly at top when ready */}
+          {processedUrl && (
+            <div 
+              ref={resultRef}
+              className="p-5 sm:p-6 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-300 dark:border-emerald-800/60 text-center space-y-4 animate-in fade-in slide-in-from-top-2 duration-300 shadow-sm"
+            >
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 text-xs font-semibold">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                Background Erased Cleanly!
+              </div>
+
+              {/* Checkerboard transparent preview */}
+              <div
+                className="max-h-72 rounded-2xl overflow-hidden border border-zinc-300 dark:border-zinc-700 p-4 flex items-center justify-center shadow-inner"
+                style={{
+                  backgroundImage:
+                    'repeating-conic-gradient(#e2e8f0 0% 25%, #ffffff 0% 50%)',
+                  backgroundSize: '16px 16px',
+                }}
+              >
+                <img
+                  src={processedUrl}
+                  alt="Background removed output"
+                  className="max-h-64 object-contain drop-shadow-md"
+                />
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                <button
+                  onClick={downloadPng}
+                  className="flex-1 py-3.5 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm shadow-md flex items-center justify-center gap-2 transition-colors active:scale-98"
+                >
+                  <Download className="w-4 h-4" />
+                  Download Transparent PNG
+                </button>
+                <button
+                  onClick={() => setProcessedUrl(null)}
+                  className="py-3 px-4 rounded-xl border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-sm font-medium transition-colors"
+                >
+                  Adjust
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Controls when not yet processed */}
           {!processedUrl && (
             <div className="space-y-4">
               <div className="flex items-center gap-2">
@@ -224,8 +282,6 @@ export function BackgroundRemover() {
                 </div>
               )}
 
-              <AdBanner format="in-tool" slot="bg-remove-inline" />
-
               <button
                 onClick={removeBackground}
                 disabled={isProcessing}
@@ -246,46 +302,8 @@ export function BackgroundRemover() {
             </div>
           )}
 
-          {processedUrl && (
-            <div className="p-6 rounded-2xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/40 text-center space-y-4">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 text-xs font-semibold">
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                Background Erased Cleanly!
-              </div>
-
-              {/* Checkerboard transparent preview */}
-              <div
-                className="max-h-72 rounded-2xl overflow-hidden border border-zinc-300 dark:border-zinc-700 p-4 flex items-center justify-center shadow-inner"
-                style={{
-                  backgroundImage:
-                    'repeating-conic-gradient(#e2e8f0 0% 25%, #ffffff 0% 50%)',
-                  backgroundSize: '16px 16px',
-                }}
-              >
-                <img
-                  src={processedUrl}
-                  alt="Background removed output"
-                  className="max-h-64 object-contain drop-shadow-md"
-                />
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                <button
-                  onClick={downloadPng}
-                  className="flex-1 py-3 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm shadow-md flex items-center justify-center gap-2 transition-colors"
-                >
-                  <Download className="w-4 h-4" />
-                  Download Transparent PNG
-                </button>
-                <button
-                  onClick={() => setProcessedUrl(null)}
-                  className="py-3 px-4 rounded-xl border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-sm font-medium transition-colors"
-                >
-                  Adjust
-                </button>
-              </div>
-            </div>
-          )}
+          {/* Ad banner placed below result */}
+          <AdBanner format="in-tool" slot="bg-remove-inline" />
 
           {error && (
             <div className="p-4 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900 text-rose-600 dark:text-rose-400 text-xs flex items-center gap-2">

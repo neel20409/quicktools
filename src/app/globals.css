@@ -24,3 +24,12 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* AdSense clean rendering: collapse empty or unfilled ads so they do not take vertical space */
+ins.adsbygoogle[data-ad-status="unfilled"],
+ins.adsbygoogle:empty {
+  display: none !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}

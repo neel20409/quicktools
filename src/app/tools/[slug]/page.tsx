@@ -65,12 +65,12 @@ export default async function ToolPage({ params }: PageProps) {
   ).slice(0, 3);
 
   return (
-    <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+    <div className="min-h-screen py-4 sm:py-8 px-3 sm:px-6 lg:px-8 max-w-7xl mx-auto">
       {/* Google SEO Rich Schema Injection */}
       <JsonLd tool={tool} type="tool" />
 
       {/* Breadcrumb Navigation */}
-      <nav className="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400 mb-6">
+      <nav className="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400 mb-3 sm:mb-6 overflow-x-auto whitespace-nowrap">
         <Link href="/" className="hover:text-indigo-600 transition-colors">
           Home
         </Link>
@@ -88,21 +88,21 @@ export default async function ToolPage({ params }: PageProps) {
       </nav>
 
       {/* Hero Header */}
-      <div className="text-center max-w-3xl mx-auto mb-8">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800/60 text-indigo-700 dark:text-indigo-300 text-xs font-semibold mb-3">
+      <div className="text-center max-w-3xl mx-auto mb-3 sm:mb-6">
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800/60 text-indigo-700 dark:text-indigo-300 text-[11px] sm:text-xs font-semibold mb-1.5 sm:mb-3">
           <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
           <span>100% Free & Unlimited In-Browser Utility</span>
         </div>
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-zinc-900 dark:text-white mb-3">
+        <h1 className="text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-zinc-900 dark:text-white mb-1.5 sm:mb-3">
           {tool.name}
         </h1>
-        <p className="text-base sm:text-lg text-zinc-600 dark:text-zinc-400 leading-relaxed">
+        <p className="text-xs sm:text-base md:text-lg text-zinc-600 dark:text-zinc-400 leading-snug sm:leading-relaxed">
           {tool.tagline}
         </p>
       </div>
 
-      {/* Top Leaderboard Ad Slot */}
-      <div className="flex justify-center mb-8">
+      {/* Top Leaderboard Ad Slot (hidden on small mobile screens to keep workspace immediately visible) */}
+      <div className="hidden sm:flex justify-center mb-6 sm:mb-8 empty:hidden">
         <AdBanner format="leaderboard" slot={`${tool.slug}-top-leaderboard`} />
       </div>
 

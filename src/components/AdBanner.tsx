@@ -48,7 +48,7 @@ export function AdBanner({
   }, [isProd, adsenseId]);
 
   return (
-    <div className={`my-4 flex items-center justify-center overflow-hidden transition-all ${className}`}>
+    <div className={`my-2 sm:my-4 flex items-center justify-center overflow-hidden transition-all [&:has(ins[data-ad-status="unfilled"])]:hidden [&:has(ins:empty)]:hidden empty:hidden ${className}`}>
       {adsenseId && isProd && (
         <ins
           ref={adRef}

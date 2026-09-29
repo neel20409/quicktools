@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { UploadCloud, Image as ImageIcon, ArrowDown, CheckCircle2, Download, RefreshCw, AlertCircle, Sliders } from 'lucide-react';
 import imageCompression from 'browser-image-compression';
 import confetti from 'canvas-confetti';
@@ -17,6 +17,18 @@ export function ImageCompressor() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const resultRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to result card immediately when compression completes
+  useEffect(() => {
+    if (compressedBlob && resultRef.current) {
+      resultRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      const timer = setTimeout(() => {
+        resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [compressedBlob]);
 
   const handleFile = (selected: File) => {
     if (!selected.type.startsWith('image/')) {
@@ -38,11 +50,29 @@ export function ImageCompressor() {
     setError(null);
 
     try {
+      // Dynamic max dimension and file size target for aggressive compression
+      let maxWidthOrHeight = 2560;
+      let targetMaxMb = 5;
+
+      if (targetQuality <= 30) {
+        maxWidthOrHeight = 1280;
+        targetMaxMb = 0.2; // 200 KB target for maximum savings
+      } else if (targetQuality <= 55) {
+        maxWidthOrHeight = 1600;
+        targetMaxMb = 0.45; // 450 KB target
+      } else if (targetQuality <= 75) {
+        maxWidthOrHeight = 1920;
+        targetMaxMb = 0.9; // 900 KB target
+      } else {
+        maxWidthOrHeight = 2560;
+        targetMaxMb = 2.0;
+      }
+
       const options = {
-        maxSizeMB: 10,
-        maxWidthOrHeight: 2560,
+        maxSizeMB: targetMaxMb,
+        maxWidthOrHeight: maxWidthOrHeight,
         useWebWorker: true,
-        initialQuality: targetQuality / 100,
+        initialQuality: Math.max(0.08, targetQuality / 100),
       };
 
       const compressedFile = await imageCompression(file, options);
@@ -149,13 +179,37 @@ export function ImageCompressor() {
 
           {/* Slider & Controls */}
           <div className="p-5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-800 space-y-4">
-            <div className="flex items-center justify-between">
+            {/* Quick 1-Tap Presets */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {[
+                { label: 'Ultra Max', sub: '85%+ off • < 200KB', q: 20 },
+                { label: 'High Save', sub: '75% off • < 500KB', q: 40 },
+                { label: 'Balanced', sub: '60% off • Sharp HD', q: 65 },
+                { label: 'Crisp Detail', sub: '35% off • Print', q: 85 },
+              ].map((p) => (
+                <button
+                  key={p.label}
+                  type="button"
+                  onClick={() => setQuality(p.q)}
+                  className={`p-2.5 rounded-xl border text-left text-xs transition-all ${
+                    quality === p.q
+                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40 shadow-xs'
+                      : 'border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 hover:border-zinc-300'
+                  }`}
+                >
+                  <div className="font-bold text-zinc-900 dark:text-white truncate">{p.label}</div>
+                  <div className="text-[10px] text-zinc-500 dark:text-zinc-400 mt-0.5">{p.sub}</div>
+                </button>
+              ))}
+            </div>
+
+            <div className="flex items-center justify-between pt-2">
               <label className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 flex items-center gap-1.5">
                 <Sliders className="w-3.5 h-3.5" />
-                Target Quality: <span className="text-blue-600 font-bold">{quality}%</span>
+                Custom Quality: <span className="text-blue-600 font-bold">{quality}%</span>
               </label>
               <span className="text-xs text-zinc-400">
-                {quality > 80 ? 'High Quality' : quality > 50 ? 'Recommended' : 'Maximum Savings'}
+                {quality <= 30 ? 'Maximum Savings (80%+)' : quality <= 60 ? 'Recommended (65%+)' : 'Crisp Detail'}
               </span>
             </div>
 
@@ -178,30 +232,13 @@ export function ImageCompressor() {
             </div>
           </div>
 
-          <AdBanner format="in-tool" slot="img-compress-inline" />
-
-          {/* Compress Button */}
-          {!compressedBlob && (
-            <button
-              onClick={() => compress()}
-              disabled={isProcessing}
-              className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold text-sm shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2 transition-all disabled:opacity-50"
-            >
-              {isProcessing ? (
-                <>
-                  <RefreshCw className="w-4 h-4 animate-spin" />
-                  <span>Compressing in browser...</span>
-                </>
-              ) : (
-                <span>Compress Image Now</span>
-              )}
-            </button>
-          )}
-
-          {/* Result Card */}
+          {/* Result Card: Displayed right at top when ready */}
           {compressedBlob && (
-            <div className="p-6 rounded-2xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/40 text-center space-y-4">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 text-xs font-semibold">
+            <div 
+              ref={resultRef}
+              className="p-5 sm:p-6 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-300 dark:border-emerald-800/60 text-center space-y-4 animate-in fade-in slide-in-from-top-2 duration-300 shadow-sm"
+            >
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 text-xs font-semibold">
                 <CheckCircle2 className="w-3.5 h-3.5" />
                 Image Compressed!
               </div>
@@ -225,9 +262,9 @@ export function ImageCompressor() {
                 </div>
               </div>
 
-              {/* Side-by-side or image preview */}
+              {/* Preview */}
               {compressedUrl && (
-                <div className="max-w-xs mx-auto rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-700 shadow-sm max-h-48">
+                <div className="max-w-xs mx-auto rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-700 shadow-sm max-h-36 sm:max-h-48">
                   <img
                     src={compressedUrl}
                     alt="Compressed output"
@@ -239,9 +276,9 @@ export function ImageCompressor() {
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
                 <button
                   onClick={downloadImage}
-                  className="flex-1 py-3 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm shadow-md flex items-center justify-center gap-2 transition-colors"
+                  className="flex-1 py-3.5 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm shadow-md flex items-center justify-center gap-2 transition-colors active:scale-98"
                 >
-                  <Download className="w-4 h-4" />
+                  <Download className="w-4 h-4 animate-bounce" />
                   Download Compressed Image
                 </button>
                 <button
@@ -251,6 +288,46 @@ export function ImageCompressor() {
                   Re-compress with New Quality
                 </button>
               </div>
+            </div>
+          )}
+
+          {/* Compress Button */}
+          {!compressedBlob && (
+            <button
+              onClick={() => compress()}
+              disabled={isProcessing}
+              className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold text-sm shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+            >
+              {isProcessing ? (
+                <>
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  <span>Compressing in browser...</span>
+                </>
+              ) : (
+                <span>Compress Image Now</span>
+              )}
+            </button>
+          )}
+
+          {/* Ad banner placed below result card */}
+          <AdBanner format="in-tool" slot="img-compress-inline" />
+
+          {/* Floating Sticky Mobile Download Bar */}
+          {compressedBlob && (
+            <div className="sm:hidden fixed bottom-4 inset-x-4 z-40 animate-in slide-in-from-bottom-5 duration-300">
+              <button
+                type="button"
+                onClick={downloadImage}
+                className="w-full py-3.5 px-5 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 text-white font-bold text-sm shadow-[0_10px_25px_rgba(5,150,105,0.45)] flex items-center justify-between border border-emerald-400/40 active:scale-95 transition-transform"
+              >
+                <span className="flex items-center gap-2">
+                  <Download className="w-4 h-4 animate-bounce" />
+                  <span>Download Image</span>
+                </span>
+                <span className="text-xs bg-white/20 px-2.5 py-0.5 rounded-full font-bold">
+                  -{savingsPercent}% Saved
+                </span>
+              </button>
             </div>
           )}
 
