@@ -4,6 +4,7 @@ import React, { useState, useRef } from 'react';
 import { UploadCloud, Scissors, Play, Pause, CheckCircle2, Download, RefreshCw, AlertCircle } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { AdBanner } from '@/components/AdBanner';
+import { downloadBlob } from '@/lib/download';
 
 export function AudioTrimmer() {
   const [file, setFile] = useState<File | null>(null);
@@ -171,12 +172,8 @@ export function AudioTrimmer() {
 
   const downloadTrimmed = () => {
     if (!trimmedBlob || !file) return;
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(trimmedBlob);
-    a.download = `trimmed_${file.name.replace(/\.[^/.]+$/, '')}.mp3`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    const cleanName = file.name.replace(/\.[^/.]+$/, '').trim();
+    downloadBlob(trimmedBlob, `trimmed_${cleanName}.mp3`, 'audio/mp3');
   };
 
   return (

@@ -4,6 +4,7 @@ import React, { useState, useRef } from 'react';
 import { UploadCloud, Video, Music, CheckCircle2, Download, RefreshCw, AlertCircle, Sparkles } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { AdBanner } from '@/components/AdBanner';
+import { downloadBlob } from '@/lib/download';
 
 export function Mp4ToMp3() {
   const [file, setFile] = useState<File | null>(null);
@@ -133,12 +134,8 @@ export function Mp4ToMp3() {
 
   const downloadAudio = () => {
     if (!audioBlob || !file) return;
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(audioBlob);
-    a.download = `${file.name.replace(/\.[^/.]+$/, '')}.mp3`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    const cleanName = file.name.replace(/\.[^/.]+$/, '').trim();
+    downloadBlob(audioBlob, `${cleanName}.mp3`, 'audio/mp3');
   };
 
   return (

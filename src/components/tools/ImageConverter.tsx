@@ -4,6 +4,7 @@ import React, { useState, useRef } from 'react';
 import { UploadCloud, Image as ImageIcon, CheckCircle2, Download, RefreshCw, AlertCircle, ArrowRight } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { AdBanner } from '@/components/AdBanner';
+import { downloadBlob } from '@/lib/download';
 
 export function ImageConverter() {
   const [file, setFile] = useState<File | null>(null);
@@ -83,12 +84,8 @@ export function ImageConverter() {
   const downloadConverted = () => {
     if (!convertedBlob || !file) return;
     const nameWithoutExt = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(convertedBlob);
-    a.download = `${nameWithoutExt}.${targetFormat === 'jpeg' ? 'jpg' : targetFormat}`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    const ext = targetFormat === 'jpeg' ? 'jpg' : targetFormat;
+    downloadBlob(convertedBlob, `${nameWithoutExt}.${ext}`, convertedBlob.type);
   };
 
   return (

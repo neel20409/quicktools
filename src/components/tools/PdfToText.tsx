@@ -5,6 +5,7 @@ import { UploadCloud, FileText, CheckCircle2, Download, Copy, RefreshCw, AlertCi
 import { PDFDocument } from 'pdf-lib';
 import confetti from 'canvas-confetti';
 import { AdBanner } from '@/components/AdBanner';
+import { downloadBlob } from '@/lib/download';
 
 export function PdfToText() {
   const [file, setFile] = useState<File | null>(null);
@@ -78,12 +79,8 @@ export function PdfToText() {
   const downloadText = () => {
     if (!extractedText || !file) return;
     const blob = new Blob([extractedText], { type: 'text/plain;charset=utf-8' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `${file.name.replace(/\.[^/.]+$/, '')}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    const cleanName = file.name.replace(/\.[^/.]+$/, '').trim();
+    downloadBlob(blob, `${cleanName}.txt`, 'text/plain');
   };
 
   return (

@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { UploadCloud, Video, ArrowDown, CheckCircle2, Download, RefreshCw, AlertCircle, Sparkles } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { AdBanner } from '@/components/AdBanner';
+import { downloadBlob } from '@/lib/download';
 
 export function VideoCompressor() {
   const [file, setFile] = useState<File | null>(null);
@@ -106,12 +107,8 @@ export function VideoCompressor() {
 
   const downloadVideo = () => {
     if (!compressedBlob || !file) return;
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(compressedBlob);
-    a.download = `compressed_${file.name}`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    const cleanName = file.name.replace(/[\\/:*?"<>|]/g, '_');
+    downloadBlob(compressedBlob, `compressed_${cleanName}`, compressedBlob.type || 'video/mp4');
   };
 
   const savingsPercent = originalSize > 0 && compressedSize > 0

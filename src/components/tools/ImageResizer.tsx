@@ -4,6 +4,7 @@ import React, { useState, useRef } from 'react';
 import { UploadCloud, Image as ImageIcon, Lock, Unlock, CheckCircle2, Download, RefreshCw, AlertCircle, Maximize2 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { AdBanner } from '@/components/AdBanner';
+import { downloadBlob } from '@/lib/download';
 
 export function ImageResizer() {
   const [file, setFile] = useState<File | null>(null);
@@ -102,12 +103,8 @@ export function ImageResizer() {
 
   const downloadResized = () => {
     if (!resizedBlob || !file) return;
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(resizedBlob);
-    a.download = `resized_${width}x${height}_${file.name}`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    const cleanName = file.name.replace(/[\\/:*?"<>|]/g, '_');
+    downloadBlob(resizedBlob, `resized_${width}x${height}_${cleanName}`, resizedBlob.type);
   };
 
   return (

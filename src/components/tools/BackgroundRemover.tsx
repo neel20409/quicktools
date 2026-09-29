@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { UploadCloud, Eraser, CheckCircle2, Download, RefreshCw, AlertCircle, Sparkles } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { AdBanner } from '@/components/AdBanner';
+import { downloadBlob } from '@/lib/download';
 
 export function BackgroundRemover() {
   const [file, setFile] = useState<File | null>(null);
@@ -142,12 +143,8 @@ export function BackgroundRemover() {
 
   const downloadPng = () => {
     if (!processedBlob || !file) return;
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(processedBlob);
-    a.download = `nobg_${file.name.replace(/\.[^/.]+$/, '')}.png`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    const cleanName = file.name.replace(/\.[^/.]+$/, '').trim();
+    downloadBlob(processedBlob, `nobg_${cleanName}.png`, 'image/png');
   };
 
   return (

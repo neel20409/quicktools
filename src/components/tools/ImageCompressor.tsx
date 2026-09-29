@@ -5,6 +5,7 @@ import { UploadCloud, Image as ImageIcon, ArrowDown, CheckCircle2, Download, Ref
 import imageCompression from 'browser-image-compression';
 import confetti from 'canvas-confetti';
 import { AdBanner } from '@/components/AdBanner';
+import { downloadBlob } from '@/lib/download';
 
 export function ImageCompressor() {
   const [file, setFile] = useState<File | null>(null);
@@ -95,12 +96,7 @@ export function ImageCompressor() {
 
   const downloadImage = () => {
     if (!compressedBlob || !file) return;
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(compressedBlob);
-    a.download = `compressed_${file.name}`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    downloadBlob(compressedBlob, `compressed_${file.name}`, compressedBlob.type || 'image/jpeg');
   };
 
   const formatBytes = (bytes: number) => {
