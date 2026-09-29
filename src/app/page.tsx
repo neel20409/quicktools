@@ -22,6 +22,10 @@ import {
   Search,
   Sparkles,
   Layers,
+  LayoutGrid,
+  Stamp,
+  Camera,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { TOOLS, CATEGORIES, ToolConfig } from '@/config/tools';
 import { AdBanner } from '@/components/AdBanner';
@@ -39,6 +43,10 @@ const ICON_MAP: Record<string, any> = {
   Music,
   Scissors,
   Video,
+  LayoutGrid,
+  Stamp,
+  Camera,
+  Image: ImageIcon,
 };
 
 export default function HomePage() {
@@ -105,12 +113,12 @@ export default function HomePage() {
       {/* Tools Section */}
       <section className="py-14 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Category Tabs */}
-        <div className="flex flex-wrap items-center justify-center gap-2 mb-10">
+        <div className="flex items-center sm:justify-center gap-2 mb-10 overflow-x-auto no-scrollbar pb-2 sm:pb-0 px-1">
           {CATEGORIES.map((cat) => (
             <button
               key={cat.id}
               onClick={() => setSelectedCategory(cat.id)}
-              className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-all flex items-center gap-2 ${
+              className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 shrink-0 ${
                 selectedCategory === cat.id
                   ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-md'
                   : 'bg-zinc-100 dark:bg-zinc-800/80 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-800'

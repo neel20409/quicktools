@@ -5,6 +5,10 @@ import { PdfCompressor } from './tools/PdfCompressor';
 import { PdfMerger } from './tools/PdfMerger';
 import { PdfSigner } from './tools/PdfSigner';
 import { PdfToText } from './tools/PdfToText';
+import { ImageToPdf } from './tools/ImageToPdf';
+import { SplitPdf } from './tools/SplitPdf';
+import { OrganizePdf } from './tools/OrganizePdf';
+import { WatermarkPdf } from './tools/WatermarkPdf';
 import { BackgroundRemover } from './tools/BackgroundRemover';
 import { ImageCompressor } from './tools/ImageCompressor';
 import { ImageConverter } from './tools/ImageConverter';
@@ -27,6 +31,15 @@ export function ToolRenderer({ slug }: ToolRendererProps) {
       return <PdfSigner />;
     case 'pdf-to-text':
       return <PdfToText />;
+    case 'image-to-pdf':
+    case 'jpg-to-pdf':
+      return <ImageToPdf />;
+    case 'split-pdf':
+      return <SplitPdf />;
+    case 'organize-pdf':
+      return <OrganizePdf />;
+    case 'watermark-pdf':
+      return <WatermarkPdf />;
     case 'remove-background':
       return <BackgroundRemover />;
     case 'compress-image':

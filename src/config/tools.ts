@@ -148,6 +148,125 @@ export const TOOLS: ToolConfig[] = [
       { question: 'Does this work on scanned PDFs?', answer: 'This tool extracts native text embedded in PDFs. For scanned camera images, an OCR layer is required.' }
     ]
   },
+  {
+    id: 'image-to-pdf',
+    slug: 'image-to-pdf',
+    name: 'Image & Scan to PDF',
+    tagline: 'Convert photos, camera scans & JPG/PNG to clean PDF',
+    description: 'Turn receipts, camera photos, JPG and PNG images into a clean multi-page PDF document. Adjust page orientation, margin, and order instantly.',
+    category: 'pdf',
+    categoryName: 'PDF Tools',
+    icon: 'Camera',
+    badge: 'New Pro',
+    accentColor: '#ea580c',
+    metaTitle: 'Image to PDF Converter - Convert JPG, PNG & Camera Scans to PDF Free',
+    metaDescription: 'Convert photos, receipts, JPG, and PNG images into a multi-page PDF online. 100% private in-browser, no upload limits, mobile camera support.',
+    keywords: ['image to pdf', 'jpg to pdf', 'png to pdf', 'convert photo to pdf', 'cam scanner to pdf', 'mobile receipt to pdf'],
+    features: [
+      'Direct mobile camera scanner capture and gallery upload',
+      'Drag-and-drop or touch reordering of pages',
+      'Fit to Page, standard A4, and US Letter presets',
+      'Instant client-side assembly with zero server lag'
+    ],
+    steps: [
+      { title: 'Add Images or Take Photos', description: 'Upload photos or take direct camera snaps from your device.' },
+      { title: 'Arrange & Configure', description: 'Reorder pages, choose page layout (Fit, A4, Letter), and select margins.' },
+      { title: 'Download PDF', description: 'Click Download to immediately save your newly generated PDF.' }
+    ],
+    faqs: [
+      { question: 'Can I take photos directly with my smartphone camera?', answer: 'Yes! Tap the Camera button on your mobile device to scan physical pages, receipts, or notes straight into a PDF.' },
+      { question: 'Are my images uploaded to any server?', answer: 'No. The conversion is executed 100% locally in your browser memory.' }
+    ]
+  },
+  {
+    id: 'split-pdf',
+    slug: 'split-pdf',
+    name: 'Split PDF',
+    tagline: 'Extract specific pages or page ranges from any PDF',
+    description: 'Split multi-page PDFs into smaller documents. Extract specific pages like 1-3, 5, or split into individual single-page documents with 1 tap.',
+    category: 'pdf',
+    categoryName: 'PDF Tools',
+    icon: 'Scissors',
+    badge: 'Essential',
+    accentColor: '#e11d48',
+    metaTitle: 'Split PDF Online Free - Extract Pages from PDF Document',
+    metaDescription: 'Split PDF documents and extract pages free. Specify page ranges (e.g. 1-5, 8) or extract individual pages with zero server upload.',
+    keywords: ['split pdf', 'extract pdf pages', 'separate pdf', 'cut pdf pages online', 'pdf splitter free'],
+    features: [
+      'Flexible range syntax (e.g. 1-3, 5, 7-10)',
+      '1-tap presets: First page only, First 3 pages, Odd or Even pages',
+      'Live total page count indicator and preview',
+      '100% client-side privacy guarantee'
+    ],
+    steps: [
+      { title: 'Select PDF File', description: 'Drop or select the PDF document you want to extract pages from.' },
+      { title: 'Enter Page Ranges', description: 'Type the pages you need (e.g. 1-4, 8) or tap a quick preset.' },
+      { title: 'Extract & Save', description: 'Click Extract Pages to download your customized document instantly.' }
+    ],
+    faqs: [
+      { question: 'How do page ranges work?', answer: 'You can use commas and dashes: for instance, "1-3, 5" extracts pages 1, 2, 3, and 5 into a new combined PDF.' },
+      { question: 'Is there a limit on PDF page count?', answer: 'No! You can process large documents with dozens of pages right on your device.' }
+    ]
+  },
+  {
+    id: 'organize-pdf',
+    slug: 'organize-pdf',
+    name: 'Organize & Rotate PDF',
+    tagline: 'Visual thumbnail grid to rotate, reorder, and delete pages',
+    description: 'View visual thumbnails of every page in your PDF. Rotate pages 90° or 180°, delete unwanted pages, and reorder document pages with 1 click.',
+    category: 'pdf',
+    categoryName: 'PDF Tools',
+    icon: 'LayoutGrid',
+    badge: 'Pro Suite',
+    accentColor: '#8b5cf6',
+    metaTitle: 'Organize PDF Pages Online - Rotate, Reorder & Delete Pages Free',
+    metaDescription: 'Visual page organizer for PDF files. Rotate upside-down pages, delete unwanted sheets, and reorder pages visually in your browser.',
+    keywords: ['organize pdf', 'rotate pdf pages', 'delete pdf pages', 'reorder pdf pages', 'pdf page manager'],
+    features: [
+      'Visual thumbnail grid for every page in your PDF',
+      'Rotate individual pages 90° clockwise or 180° upside-down',
+      '1-click Rotate All Pages to fix scanned document orientation',
+      'Delete unwanted blank or duplicate pages with 1 click'
+    ],
+    steps: [
+      { title: 'Upload PDF', description: 'Open any multi-page PDF to generate page thumbnails.' },
+      { title: 'Rotate, Delete, Reorder', description: 'Use individual page controls to fix orientation or remove unwanted pages.' },
+      { title: 'Save Organized PDF', description: 'Click Save Organized PDF to export your cleaned document.' }
+    ],
+    faqs: [
+      { question: 'Can I rotate just one upside-down scanned page?', answer: 'Yes! Each page card has a rotate button so you can correct single pages without affecting others.' },
+      { question: 'Will my original PDF be overwritten?', answer: 'No, QuickTools produces a new updated PDF file for you to download.' }
+    ]
+  },
+  {
+    id: 'watermark-pdf',
+    slug: 'watermark-pdf',
+    name: 'Watermark PDF',
+    tagline: 'Stamp CONFIDENTIAL, DRAFT, copyright, or custom text',
+    description: 'Protect your intellectual property by applying professional diagonal or horizontal text watermarks to all pages of your PDF document.',
+    category: 'pdf',
+    categoryName: 'PDF Tools',
+    icon: 'Stamp',
+    badge: 'Security',
+    accentColor: '#0284c7',
+    metaTitle: 'Watermark PDF Online Free - Add Text Watermark to PDF',
+    metaDescription: 'Stamp custom watermarks, CONFIDENTIAL, DRAFT, or Copyright marks across PDF documents in seconds. 100% private in-browser tool.',
+    keywords: ['watermark pdf', 'add watermark to pdf', 'confidential stamp pdf', 'draft watermark', 'protect pdf document'],
+    features: [
+      '1-tap presets: CONFIDENTIAL, DRAFT, COPY, SAMPLE',
+      'Custom watermark text with adjustable opacity (10% to 80%)',
+      'Angle choices: 45° diagonal or horizontal banner',
+      'Professional color choices: Crimson, Charcoal, Slate, Navy'
+    ],
+    steps: [
+      { title: 'Load PDF', description: 'Select the PDF document you want to stamp.' },
+      { title: 'Set Watermark', description: 'Select a preset or type your custom stamp text and select opacity.' },
+      { title: 'Apply & Download', description: 'Click Apply Watermark to generate your stamped PDF instantly.' }
+    ],
+    faqs: [
+      { question: 'Does watermarking affect document quality or text?', answer: 'No, all existing text, vectors, and photos remain completely intact. The watermark is added as a crisp vector overlay.' }
+    ]
+  },
 
   // --- IMAGE TOOLS ---
   {
@@ -356,8 +475,8 @@ export const TOOLS: ToolConfig[] = [
 ];
 
 export const CATEGORIES = [
-  { id: 'all', name: 'All Tools', count: 11, icon: 'LayoutGrid' },
-  { id: 'pdf', name: 'PDF Tools', count: 4, icon: 'FileText' },
+  { id: 'all', name: 'All Tools', count: 15, icon: 'LayoutGrid' },
+  { id: 'pdf', name: 'PDF Tools', count: 8, icon: 'FileText' },
   { id: 'image', name: 'Image Tools', count: 4, icon: 'Image' },
   { id: 'video-audio', name: 'Video & Audio', count: 3, icon: 'Volume2' }
 ];

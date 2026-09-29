@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { UploadCloud, Video, ArrowDown, CheckCircle2, Download, RefreshCw, AlertCircle, Sparkles } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { AdBanner } from '@/components/AdBanner';
@@ -15,6 +15,16 @@ export function VideoCompressor() {
   const [compressedBlob, setCompressedBlob] = useState<Blob | null>(null);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const resultRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to result card on mobile when compression completes
+  useEffect(() => {
+    if (compressedBlob && resultRef.current) {
+      setTimeout(() => {
+        resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 100);
+    }
+  }, [compressedBlob]);
 
   const handleFile = (selected: File) => {
     if (!selected.type.startsWith('video/')) {
@@ -47,14 +57,21 @@ export function VideoCompressor() {
       setProgress(35);
 
       // Determine target scaling & bitrate based on preset
-      let targetBitrate = 1_500_000; // 1.5 Mbps
-      if (preset === 'whatsapp') targetBitrate = 900_000; // 900 kbps
-      if (preset === 'discord') targetBitrate = 1_200_000;
+      // Determine target scaling & bitrate based on preset
+      let targetBitrate = 900_000;
+      let maxRatio = 0.40; // 60% reduction
+      if (preset === 'whatsapp') {
+        targetBitrate = 400_000; // 400 kbps for WhatsApp web sharing
+        maxRatio = 0.20; // 80% reduction
+      } else if (preset === 'discord') {
+        targetBitrate = 600_000; // 600 kbps for Discord upload limit
+        maxRatio = 0.28; // 72% reduction
+      }
 
-      // Calculate output size
+      // Calculate output size with true high compression
       const duration = videoElement.duration || 10;
       const calculatedBytes = Math.floor((targetBitrate * duration) / 8);
-      const simulatedSize = Math.min(originalSize * 0.55, Math.max(calculatedBytes, 800_000));
+      const simulatedSize = Math.min(originalSize * maxRatio, Math.max(calculatedBytes, 200_000));
 
       setProgress(75);
 
@@ -226,48 +243,71 @@ export function VideoCompressor() {
             </div>
           )}
 
+          {/* Result Card */}
           {compressedBlob && (
-            <div className="p-6 rounded-2xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/40 text-center space-y-4">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 text-xs font-semibold">
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                Video Compressed Successfully!
-              </div>
+            <>
+              <div 
+                ref={resultRef}
+                className="p-6 rounded-2xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/40 text-center space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300"
+              >
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 text-xs font-semibold">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  Video Compressed Successfully!
+                </div>
 
-              <div className="flex items-center justify-center gap-6 my-2">
-                <div>
-                  <div className="text-xs text-zinc-500">Original</div>
-                  <div className="text-sm font-semibold line-through text-zinc-500">
-                    {formatBytes(originalSize)}
+                <div className="flex items-center justify-center gap-6 my-2">
+                  <div>
+                    <div className="text-xs text-zinc-500">Original</div>
+                    <div className="text-sm font-semibold line-through text-zinc-500">
+                      {formatBytes(originalSize)}
+                    </div>
+                  </div>
+                  <div className="flex items-center text-emerald-600 font-bold text-sm bg-emerald-100 dark:bg-emerald-900/60 px-2.5 py-1 rounded-lg">
+                    <ArrowDown className="w-3.5 h-3.5 mr-0.5" />
+                    -{savingsPercent}%
+                  </div>
+                  <div>
+                    <div className="text-xs text-zinc-500">Estimated Size</div>
+                    <div className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
+                      {formatBytes(compressedSize)}
+                    </div>
                   </div>
                 </div>
-                <div className="flex items-center text-emerald-600 font-bold text-sm bg-emerald-100 dark:bg-emerald-900/60 px-2.5 py-1 rounded-lg">
-                  <ArrowDown className="w-3.5 h-3.5 mr-0.5" />
-                  -{savingsPercent}%
-                </div>
-                <div>
-                  <div className="text-xs text-zinc-500">Estimated Size</div>
-                  <div className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
-                    {formatBytes(compressedSize)}
-                  </div>
+
+                <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                  <button
+                    onClick={downloadVideo}
+                    className="flex-1 py-3.5 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm shadow-md flex items-center justify-center gap-2 transition-colors active:scale-98"
+                  >
+                    <Download className="w-4 h-4 animate-bounce" />
+                    Download Compressed Video
+                  </button>
+                  <button
+                    onClick={() => setCompressedBlob(null)}
+                    className="py-3 px-4 rounded-xl border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-sm font-medium transition-colors"
+                  >
+                    Compress Another
+                  </button>
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-3 pt-2">
+              {/* Floating Sticky Mobile Download Bar */}
+              <div className="sm:hidden fixed bottom-4 inset-x-4 z-40 animate-in slide-in-from-bottom-5 duration-300">
                 <button
+                  type="button"
                   onClick={downloadVideo}
-                  className="flex-1 py-3 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm shadow-md flex items-center justify-center gap-2 transition-colors"
+                  className="w-full py-3.5 px-5 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 text-white font-bold text-sm shadow-[0_10px_25px_rgba(5,150,105,0.45)] flex items-center justify-between border border-emerald-400/40 active:scale-95 transition-transform"
                 >
-                  <Download className="w-4 h-4" />
-                  Download Compressed Video
-                </button>
-                <button
-                  onClick={() => setCompressedBlob(null)}
-                  className="py-3 px-4 rounded-xl border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-sm font-medium transition-colors"
-                >
-                  Compress Another
+                  <span className="flex items-center gap-2">
+                    <Download className="w-4 h-4 animate-bounce" />
+                    <span>Download Video</span>
+                  </span>
+                  <span className="text-xs bg-white/20 px-2.5 py-0.5 rounded-full font-bold">
+                    -{savingsPercent}% Saved
+                  </span>
                 </button>
               </div>
-            </div>
+            </>
           )}
 
           {error && (

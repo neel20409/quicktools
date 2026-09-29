@@ -142,9 +142,35 @@ export function Navbar() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search any tool..."
-            className="w-full px-4 py-2 rounded-xl text-sm bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white"
+            placeholder="Search any tool (e.g. compress, pdf, bg)..."
+            className="w-full px-4 py-2.5 rounded-xl text-sm bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white"
           />
+
+          {/* Mobile Search Results */}
+          {filteredTools.length > 0 && (
+            <div className="max-h-60 overflow-y-auto space-y-1.5 py-1 border-b border-zinc-200 dark:border-zinc-800">
+              {filteredTools.map((tool) => (
+                <Link
+                  key={tool.id}
+                  href={`/tools/${tool.slug}`}
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    setSearchQuery('');
+                  }}
+                  className="flex items-center justify-between p-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-xs"
+                >
+                  <div>
+                    <span className="font-semibold text-zinc-900 dark:text-zinc-100 block">{tool.name}</span>
+                    <span className="text-[11px] text-zinc-500">{tool.tagline}</span>
+                  </div>
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300">
+                    {tool.categoryName}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          )}
+
           <div className="grid grid-cols-1 gap-1 text-sm font-medium">
             <Link
               href="/#pdf-tools"
