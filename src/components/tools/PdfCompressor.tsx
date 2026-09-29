@@ -359,6 +359,14 @@ export function PdfCompressor() {
   const [showDownloadModal, setShowDownloadModal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
+  const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
+  const [downloadFilename, setDownloadFilename] = useState<string>('compressed_document.pdf');
+
+  useEffect(() => {
+    return () => {
+      if (downloadUrl) URL.revokeObjectURL(downloadUrl);
+    };
+  }, [downloadUrl]);
 
   // Auto-scroll to result card immediately when compression completes
   useEffect(() => {
@@ -500,6 +508,13 @@ export function PdfCompressor() {
       const resultBlob = new Blob([pdfBytes as Uint8Array<ArrayBuffer>], { type: 'application/pdf' });
       setCompressedBlob(resultBlob);
 
+      const cleanName = (file?.name || 'document').replace(/\.[^/.]+$/, '').trim().replace(/[\\/:*?"<>|]/g, '_');
+      const finalName = `compressed_${cleanName || 'document'}.pdf`;
+      const fileObj = new File([resultBlob], finalName, { type: 'application/pdf' });
+      const objectUrl = URL.createObjectURL(fileObj);
+      setDownloadUrl(objectUrl);
+      setDownloadFilename(finalName);
+
       // ALWAYS set the true, real size of the actual downloaded file!
       setCompressedSize(resultBlob.size);
       setProgress(100);
@@ -519,12 +534,12 @@ export function PdfCompressor() {
 
   const downloadFile = () => {
     if (!compressedBlob || !file) return;
-    const cleanName = file.name.replace(/\.[^/.]+$/, '').trim();
-    const finalName = `compressed_${cleanName || 'document'}.pdf`;
-    downloadBlob(compressedBlob, finalName, 'application/pdf');
+    downloadBlob(compressedBlob, downloadFilename, 'application/pdf');
   };
 
   const reset = () => {
+    if (downloadUrl) URL.revokeObjectURL(downloadUrl);
+    setDownloadUrl(null);
     setFile(null);
     setCompressedBlob(null);
     setError(null);
@@ -633,13 +648,23 @@ export function PdfCompressor() {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-2.5 pt-1">
-                <button
-                  onClick={downloadFile}
-                  className="flex-1 py-3 px-5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm shadow-md flex items-center justify-center gap-2 transition-all active:scale-98"
+                <a
+                  href={downloadUrl || '#'}
+                  download={downloadFilename}
+                  onClick={(e) => {
+                    if (!downloadUrl) {
+                      e.preventDefault();
+                      downloadFile();
+                    } else if ('showSaveFilePicker' in window && compressedBlob) {
+                      e.preventDefault();
+                      downloadFile();
+                    }
+                  }}
+                  className="flex-1 py-3 px-5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm shadow-md flex items-center justify-center gap-2 transition-all active:scale-98 cursor-pointer text-center"
                 >
                   <Download className="w-4 h-4 animate-bounce" />
                   Download Compressed PDF
-                </button>
+                </a>
                 <button
                   onClick={reset}
                   className="py-3 px-4 rounded-xl border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-sm font-medium transition-colors"
