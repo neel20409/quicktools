@@ -5,6 +5,7 @@ import { UploadCloud, FileText, ArrowUp, ArrowDown, Trash2, CheckCircle2, Downlo
 import { PDFDocument } from 'pdf-lib';
 import confetti from 'canvas-confetti';
 import { AdBanner } from '@/components/AdBanner';
+import { downloadBlob } from '@/lib/download';
 
 interface PdfFileItem {
   id: string;
@@ -106,14 +107,7 @@ export function PdfMerger() {
 
   const downloadMerged = () => {
     if (!mergedBlob) return;
-    const url = URL.createObjectURL(mergedBlob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `merged_document_${Date.now()}.pdf`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    downloadBlob(mergedBlob, `merged_document_${Date.now()}.pdf`, 'application/pdf');
   };
 
   const formatBytes = (bytes: number) => {

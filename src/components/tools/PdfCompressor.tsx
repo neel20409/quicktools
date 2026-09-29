@@ -6,6 +6,7 @@ import { PDFDocument } from 'pdf-lib';
 import confetti from 'canvas-confetti';
 import { AdBanner } from '@/components/AdBanner';
 import { DownloadAdModal } from '@/components/DownloadAdModal';
+import { downloadBlob } from '@/lib/download';
 
 export function PdfCompressor() {
   const [file, setFile] = useState<File | null>(null);
@@ -121,14 +122,9 @@ export function PdfCompressor() {
 
   const downloadFile = () => {
     if (!compressedBlob || !file) return;
-    const url = URL.createObjectURL(compressedBlob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `compressed_${file.name}`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    const cleanName = file.name.replace(/\.[^/.]+$/, '').trim();
+    const finalName = `compressed_${cleanName || 'document'}.pdf`;
+    downloadBlob(compressedBlob, finalName, 'application/pdf');
   };
 
   const reset = () => {
@@ -241,7 +237,7 @@ export function PdfCompressor() {
 
               <div className="flex flex-col sm:flex-row gap-2.5 pt-1">
                 <button
-                  onClick={() => setShowDownloadModal(true)}
+                  onClick={downloadFile}
                   className="flex-1 py-3 px-5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm shadow-md flex items-center justify-center gap-2 transition-all active:scale-98"
                 >
                   <Download className="w-4 h-4 animate-bounce" />
@@ -352,12 +348,12 @@ export function PdfCompressor() {
             <div className="sm:hidden fixed bottom-4 inset-x-4 z-40 animate-in slide-in-from-bottom-5 duration-300">
               <button
                 type="button"
-                onClick={() => setShowDownloadModal(true)}
+                onClick={downloadFile}
                 className="w-full py-3.5 px-5 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 text-white font-bold text-sm shadow-[0_10px_25px_rgba(5,150,105,0.45)] flex items-center justify-between border border-emerald-400/40 active:scale-95 transition-transform"
               >
                 <span className="flex items-center gap-2">
                   <Download className="w-4 h-4 animate-bounce" />
-                  <span>Download Ready</span>
+                  <span>Download Ready (.pdf)</span>
                 </span>
                 <span className="text-xs bg-white/20 px-2.5 py-0.5 rounded-full font-bold">
                   -{savingsPercent}% Saved

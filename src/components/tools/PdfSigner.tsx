@@ -5,6 +5,7 @@ import { UploadCloud, FileText, PenTool, CheckCircle2, Download, RefreshCw, Aler
 import { PDFDocument } from 'pdf-lib';
 import confetti from 'canvas-confetti';
 import { AdBanner } from '@/components/AdBanner';
+import { downloadBlob } from '@/lib/download';
 
 export function PdfSigner() {
   const [file, setFile] = useState<File | null>(null);
@@ -37,8 +38,12 @@ export function PdfSigner() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     const rect = canvas.getBoundingClientRect();
-    const x = 'touches' in e ? e.touches[0].clientX - rect.left : e.clientX - rect.left;
-    const y = 'touches' in e ? e.touches[0].clientY - rect.top : e.clientY - rect.top;
+    const scaleX = canvas.width / (rect.width || 1);
+    const scaleY = canvas.height / (rect.height || 1);
+    const clientX = 'touches' in e && e.touches.length > 0 ? e.touches[0].clientX : ('clientX' in e ? e.clientX : 0);
+    const clientY = 'touches' in e && e.touches.length > 0 ? e.touches[0].clientY : ('clientY' in e ? e.clientY : 0);
+    const x = (clientX - rect.left) * scaleX;
+    const y = (clientY - rect.top) * scaleY;
     ctx.beginPath();
     ctx.moveTo(x, y);
   };
@@ -50,8 +55,12 @@ export function PdfSigner() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     const rect = canvas.getBoundingClientRect();
-    const x = 'touches' in e ? e.touches[0].clientX - rect.left : e.clientX - rect.left;
-    const y = 'touches' in e ? e.touches[0].clientY - rect.top : e.clientY - rect.top;
+    const scaleX = canvas.width / (rect.width || 1);
+    const scaleY = canvas.height / (rect.height || 1);
+    const clientX = 'touches' in e && e.touches.length > 0 ? e.touches[0].clientX : ('clientX' in e ? e.clientX : 0);
+    const clientY = 'touches' in e && e.touches.length > 0 ? e.touches[0].clientY : ('clientY' in e ? e.clientY : 0);
+    const x = (clientX - rect.left) * scaleX;
+    const y = (clientY - rect.top) * scaleY;
     ctx.lineTo(x, y);
     ctx.stroke();
   };
@@ -145,14 +154,9 @@ export function PdfSigner() {
 
   const downloadSigned = () => {
     if (!signedBlob || !file) return;
-    const url = URL.createObjectURL(signedBlob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `signed_${file.name}`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    const cleanName = file.name.replace(/\.[^/.]+$/, '').trim();
+    const finalName = `signed_${cleanName || 'document'}.pdf`;
+    downloadBlob(signedBlob, finalName, 'application/pdf');
   };
 
   return (
